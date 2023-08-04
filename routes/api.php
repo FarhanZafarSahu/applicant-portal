@@ -32,18 +32,13 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
     /*export all applications*/
     Route::get('export-applications', [ApplicationController::class, 'exportApplications']);
 
-/*Routes for Facility*/
-    Route::apiResource('facilities', FacilityController::class);
+    /*Routes for Facility*/
+        Route::apiResource('facilities', FacilityController::class);
 
-/*Routes for Department*/
-    Route::post('department/add',    [DepartmentController::class, 'store']);
-    Route::get('department',         [DepartmentController::class, 'index']);
-    Route::post('department/update', [DepartmentController::class, 'update']);
-    Route::post('department/delete', [DepartmentController::class, 'destroy']);
-
-/*Routes for Position*/
-    Route::post('position/add',    [PositionController::class, 'store']);
-    Route::get('position',         [PositionController::class, 'index']);
-    Route::post('position/update', [PositionController::class, 'update']);
-    Route::post('position/delete', [PositionController::class, 'destroy']);
+    /*Routes for Department*/
+        Route::apiResource('departments', DepartmentController::class);
+        
+    /*Routes for Position*/
+        Route::apiResource('positions', PositionController::class);
+    
 });

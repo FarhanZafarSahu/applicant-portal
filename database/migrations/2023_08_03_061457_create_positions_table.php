@@ -15,12 +15,10 @@ class CreatePositionsTable extends Migration
     {
         Schema::create('positions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('department_id');
+            $table->foreignId('department_id')->constrained('departments');;
             $table->string('position');
-            $table->boolean('status')->default(false);
+            $table->string('status')->nullable();
             $table->timestamps();
-
-            $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
         });
     }
 

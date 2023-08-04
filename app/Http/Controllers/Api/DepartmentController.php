@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Classes\StatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Api\BaseController;
 use App\Http\Requests\Department\DepartmentRequest;
-use App\Http\Requests\Department\UpdaeDepartmentRequest;
+use App\Http\Requests\PaginateRequest;
 use Illuminate\Http\Request;
 use App\Models\Department;
-use Validator;
+use Illuminate\Support\Facades\DB;
 
 class DepartmentController extends BaseController
 {
@@ -17,29 +17,18 @@ class DepartmentController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(PaginateRequest $request)
     {
         try {
-            $department = Department::where('status', 0)
-                      ->with('Position')
-                      ->get();
-            return $this->sendResponse([$department], 'All Department');
-            } catch (\Throwable $th) 
-            {
-            return $this->sendError(['error' => $e->getMessage()]);
-            }
-    }
+            $department = Department::where('status', 'active')
+                ->with('positions')
+                ->paginate($request->per_page ?? 10);
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+            return $this->sendResponse([$department], 'All Departments');
+        } catch (\Throwable $th) {
+            return $this->sendError(['error' => $th->getMessage()]);
+        }
     }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -49,16 +38,35 @@ class DepartmentController extends BaseController
     public function store(DepartmentRequest $request)
     {
         try {
-            $department = Department::create($request->all());
-            if($department)
+            DB::beginTransaction();
+            $department = $this->storeOrUpdateDepartment($request);
+            if(isset($department->id))
             {
-                return $this->sendResponse([], 'Department Added Successfully');
+                DB::commit();
+                return $this->sendResponse([$department], 'Department created successfully.');
             }
+            DB::rollback();
+            return $this->sendError([$facility], 'Something went wrong! Please try again later.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $this->sendError($e->getMessage(), 'Something went wrong! Please try again later.');
+        }
+    }
 
-            } catch (\Exception $e) 
-            {
-            return $this->sendError(['error' => $e->getMessage()]);
-            }
+    private function storeOrUpdateDepartment($request)
+    {
+        try {
+            return Deparment::updateOrCreate(
+                ['id'  => $request->department_id],
+                [
+                    'facility_id' => $request->facility_id ?? null,
+                    'department'  => $request->department ?? null,
+                    'status'      => $request->status ?? null
+                ]
+            );
+        } catch (\Exception $e) {
+            return $this->sendError('Error', $e->getMessage());
+        }
     }
 
     /**
@@ -69,7 +77,16 @@ class DepartmentController extends BaseController
      */
     public function show($id)
     {
-        //
+        try {
+            $department = Department::whereId($id)->first();
+            /*check if facility found or not*/
+            if ($department) {
+                return $this->sendResponse([$department], 'Specific department retrieved successfully.');
+            }
+            return $this->sendError([], 'Department Not Found!');
+        } catch (\Exception $e) {
+            return $this->sendError('Error', $e->getMessage());
+        }
     }
 
     /**
@@ -80,7 +97,7 @@ class DepartmentController extends BaseController
      */
     public function edit($id)
     {
-        //
+
     }
 
     /**
@@ -90,22 +107,17 @@ class DepartmentController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdaeDepartmentRequest $request)
+    public function update(Request $request, $id)
     {
         try {
-            $department = Department::find($request->departmentId);
-            if ($department) {
-                $department->update([
-                    'department' => $request->department ?? $department->department,
-                ]);
-                return $this->sendResponse([], 'Department Updated Successfully');
-            }else
-            {
-                return $this->sendResponse([], 'No Such Department Exist');
-            }
-            
+            DB::beginTransaction();
+            $request['department_id'] = (int)$id;
+            $department = $this->storeOrUpdateDepartment($request);
+            DB::commit();
+            return $this->sendResponse([$department->fresh()], 'Department updated successfully.');
         } catch (\Exception $e) {
-            return $this->sendError(['error' => $e->getMessage()]);
+            DB::rollBack();
+            return $this->sendError('Error', $e->getMessage());
         }
     }
 
@@ -115,26 +127,18 @@ class DepartmentController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(UpdaeDepartmentRequest $request)
+    public function destroy($id)
     {
-        
         try {
-            $department = Department::find($request->departmentId);
-            if ($department) {
-                $department->update([
-                    'status' => 1,
-                    
-                ]);
-                return $this->sendResponse([], 'Department Deleted Successfully');
-            }else
-            {
-                return $this->sendResponse([], 'No Such Department Exist');
+            $department = Department::findOrFail($id);
+            $response = $department->delete();
+
+            if ($response) {
+                return $this->sendResponse([], 'Department deleted successfully.');
             }
-            
+            return $this->sendError([], 'Failed to delete the department.');
         } catch (\Exception $e) {
-            return $this->sendError(['error' => $e->getMessage()]);
+            return $this->sendError('Error', $e->getMessage());
         }
-            
-       
     }
 }
