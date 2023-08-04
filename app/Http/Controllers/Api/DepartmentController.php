@@ -97,7 +97,6 @@ class DepartmentController extends BaseController
      */
     public function edit($id)
     {
-
     }
 
     /**

@@ -28,7 +28,6 @@ Route::post('application/add',    [ApplicationController::class, 'store']);
 /*Admin Routes*/
 Route::middleware(['auth:api', 'verified'])->group(function () {
 
-
     /*export all applications*/
     Route::get('export-applications', [ApplicationController::class, 'exportApplications']);
 

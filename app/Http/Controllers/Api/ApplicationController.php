@@ -31,7 +31,6 @@ class ApplicationController extends BaseController
      */
     public function create()
     {
-
     }
 
     /**
