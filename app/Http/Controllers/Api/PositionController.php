@@ -58,7 +58,7 @@ class PositionController extends BaseController
     {
         try {
             return Position::updateOrCreate(
-                ['id' => $request->department_id],
+                ['id' => $request->position_id],
                 [
                     'department_id'  => $request->department_id ?? null,
                     'position'       => $request->position ?? null,
