@@ -56,7 +56,7 @@ class DepartmentController extends BaseController
     private function storeOrUpdateDepartment($request)
     {
         try {
-            return Deparment::updateOrCreate(
+            return Department::updateOrCreate(
                 ['id'  => $request->department_id],
                 [
                     'facility_id' => $request->facility_id ?? null,

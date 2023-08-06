@@ -21,10 +21,10 @@ class PositionController extends BaseController
     {
         try {
             $position = Position::where('status', 'active')
-                      ->get($request->per_page ?? 10);
+                       ->paginate($request->per_page ?? 10);
 
             return $this->sendResponse([$position], 'All Position');
-            } catch (\Throwable $th) 
+            } catch (\Exception $e) 
             {
             return $this->sendError(['error' => $e->getMessage()]);
             }
@@ -40,21 +40,21 @@ class PositionController extends BaseController
     {
         try {
             DB::beginTransaction();
-            $position = $this->storeOrUpdateDepartment($request);
+            $position = $this->storeOrUpdatePosition($request);
             if(isset($position->id))
             {
                 DB::commit();
-                return $this->sendResponse([$department], 'Position created successfully.');
+                return $this->sendResponse([$position], 'Position created successfully.');
             }
             DB::rollback();
-            return $this->sendError([$department], 'Something went wrong! Please try again later.');
+            return $this->sendError([$position], 'Something went wrong! Please try again later.');
         } catch (\Exception $e) {
             DB::rollback();
             return $this->sendError($e->getMessage(), 'Something went wrong! Please try again later.');
         }
     }
 
-    private function storeOrUpdateDepartment($request)
+    private function storeOrUpdatePosition($request)
     {
         try {
             return Position::updateOrCreate(
@@ -109,16 +109,16 @@ class PositionController extends BaseController
      */
     public function update(Request $request, $id)
     {
-       try {
         DB::beginTransaction();
-        $request['department_id'] = int($id);
-        $position = $this->storeOrUpdateDepartment($request);
-        DB::commit();
-        return $this->sendResponse([$department->fresh()], 'Position updated successfully.');
-       } catch (\Exception $e) {
-        DB::rollback();
-        return $this->sendError('Error', $e->getMessage());
-       }
+        try {
+            $request['position_id'] = (int)$id;
+            $position = $this->storeOrUpdatePosition($request);
+            DB::commit();
+            return $this->sendResponse([$position->fresh()], 'Position updated successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->sendError('Error', $e->getMessage());
+        }
     }
 
     /**
