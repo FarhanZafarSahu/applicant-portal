@@ -27,7 +27,7 @@ class ApplicationController extends BaseController
                        ->with('Position')
                        ->paginate($request->per_page ?? 10);
 
-            return $this->sendResponse([$position], 'All Position');
+            return $this->sendResponse([$position], 'All Applications');
             } catch (\Exception $e) 
             {
             return $this->sendError(['error' => $e->getMessage()]);
