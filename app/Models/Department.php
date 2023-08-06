@@ -17,7 +17,7 @@ class Department extends Model
         return $this->belongsTo(Facility::class, 'facility_id');
     }
 
-    public function Position()
+    public function positions()
     {
         return $this->hasMany(Position::class,'department_id','id');
     }
