@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\ExportTrait;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseController;
+use App\Http\Requests\PaginateRequest;
 use App\Http\Requests\Application\ApplicationRequest;
 use App\Models\Application;
 use Validator;
@@ -19,9 +20,18 @@ class ApplicationController extends BaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(PaginateRequest $request)
     {
-        //
+        try {
+            $position = Application::where('status', 'active')
+                       ->with('Position')
+                       ->paginate($request->per_page ?? 10);
+
+            return $this->sendResponse([$position], 'All Position');
+            } catch (\Exception $e) 
+            {
+            return $this->sendError(['error' => $e->getMessage()]);
+            }
     }
 
     /**

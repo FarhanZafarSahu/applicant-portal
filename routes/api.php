@@ -24,6 +24,7 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api')
 
 /*Application Form Routes*/
 Route::post('application/add',    [ApplicationController::class, 'store']);
+Route::post('/closest-facilities', [FacilityController::class, 'getClosestFacilities']);
 
 /*Admin Routes*/
 Route::middleware(['auth:api', 'verified'])->group(function () {
@@ -39,5 +40,8 @@ Route::middleware(['auth:api', 'verified'])->group(function () {
         
     /*Routes for Position*/
         Route::apiResource('positions', PositionController::class);
+    
+    /*Routes for Application*/
+    Route::get('all-applications',    [ApplicationController::class, 'index']);
     
 });
